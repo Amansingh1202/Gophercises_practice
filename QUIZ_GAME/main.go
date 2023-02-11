@@ -1,26 +1,20 @@
 package main
 
 import (
+	"context"
 	"encoding/csv"
 	"fmt"
 	"io"
 	"log"
 	"os"
 	"strconv"
+	"time"
 )
 
-func main() {
-	fd, error := os.Open("problems.csv")
-	// scanner := bufio.NewReader(os.Stdin)
+var score = 0
+
+func QuizGame(csvReader *csv.Reader, score1 chan int) {
 	var ans int
-	score := 0
-	if error != nil {
-		log.Fatal("Error in opening the file")
-	}
-	defer fd.Close()
-
-	csvReader := csv.NewReader(fd)
-
 	for {
 		line, error := csvReader.Read()
 		if error == io.EOF {
@@ -42,5 +36,28 @@ func main() {
 		}
 
 	}
-	fmt.Println(score)
+	score1 <- score
+}
+func main() {
+	fd, error := os.Open("problems.csv")
+	if error != nil {
+		log.Fatal("Error in opening the file")
+	}
+	defer fd.Close()
+	var score1 chan int
+	csvReader := csv.NewReader(fd)
+
+	ctx, _ := context.WithTimeout(context.Background(), time.Second*time.Duration(5))
+	go QuizGame(csvReader, score1)
+
+	select {
+	case v := <-score1:
+		fmt.Println(v)
+	case <-ctx.Done():
+		fmt.Println()
+		fmt.Println("Time's up")
+		fmt.Println(score)
+		return
+	}
+
 }
