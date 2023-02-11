@@ -16,7 +16,8 @@ import (
 var score = 0
 
 func QuizGame(csvReader *csv.Reader, score1 chan int) {
-	var ans int
+	var ans string
+	reader := bufio.NewReader(os.Stdin)
 	for {
 		line, error := csvReader.Read()
 		if error == io.EOF {
@@ -27,10 +28,11 @@ func QuizGame(csvReader *csv.Reader, score1 chan int) {
 		} else {
 			fmt.Print(line[0])
 			fmt.Print("=  ")
-			fmt.Scanf("%d\n", &ans)
-			g := line[1]
-			g1, _ := strconv.Atoi(g)
-			if ans != g1 {
+			ans, _ = reader.ReadString('\n')
+			ans = strings.TrimSpace(ans)
+			ans = strings.ToLower(ans)
+			g := strings.ToLower(line[1])
+			if ans != g {
 				continue
 			} else {
 				score++
